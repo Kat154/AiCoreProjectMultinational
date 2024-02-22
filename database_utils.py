@@ -26,17 +26,9 @@ class DatabaseConnector:
 		engine = create_engine(f"{RDS_DATABASE_TYPE}+{DBAPI}://{RDS_USER}:{RDS_PASSWORD}@{RDS_HOST}:{RDS_PORT}/{RDS_DATABASE}")
 		return engine
 
-	def read_rds_table(self,table_name):
-		engine = self.init_db_engine()
-		with engine.connect() as connection:
-			user_data_df = pd.read_sql_table({table_name},engine)
-			return user_data_df
-			
-	def read_sql_query(self):
-		engine = self.init_db_engine()
-		with engine.connect() as connection:
-			df = pd.read_sql_query('select * from information_schema.tables',engine)
-			return df
+	
+
+
 
 
 
