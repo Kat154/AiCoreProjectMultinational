@@ -109,10 +109,11 @@ class DataCleaning:
 	def _change_user_uuid(self,value):
 		if str(value) == 'NULL':
 			return np.nan
+		elif len(str(value)) < 36:
+			return np.nan
 		else:
 			return value
 
-		# for remaining null values we replace them with zero
 # ----------------------------------------card data -------------------------------------------------------------------------------------
 	def clean_card_data(self,card_data_df):
 		clean_df = card_data_df.dropna(axis = 1,how = 'all')
@@ -151,9 +152,10 @@ class DataCleaning:
 		clean_store_df = clean_store_df.dropna(axis = 0, thresh = 8)
 		clean_store_df = self._clean_opening_date_column(clean_store_df)
 		clean_store_df = self._clean_country_code(clean_store_df)
-		clean_store_df = self.clean_continent(clean_store_df)
-		clean_store_df = self.clean_store_type(clean_store_df)
-		clean_store_df = self.clean_staff_number(clean_store_df)
+		clean_store_df = self._clean_continent(clean_store_df)
+		clean_store_df = self._clean_store_type(clean_store_df)
+		clean_store_df = self._clean_staff_number(clean_store_df)
+		clean_store_df = self._clean_latitude_and_longitude(clean_store_df)
 
 		return clean_store_df
 
@@ -173,7 +175,7 @@ class DataCleaning:
 		else:
 			return value
 
-	def clean_continent(self,store_dataframe):
+	def _clean_continent(self,store_dataframe):
 		store_dataframe['continent'] = store_dataframe['continent'].apply(self._change_continent)
 		return store_dataframe
 
@@ -188,7 +190,7 @@ class DataCleaning:
 		store_dataframe['latitude'] = pd.to_numeric(store_dataframe['latitude'],errors = 'coerce')
 		return store_dataframe
 
-	def clean_store_type(self,store_dataframe):
+	def _clean_store_type(self,store_dataframe):
 		store_dataframe['store_type']=store_dataframe['store_type'].apply(self._change_store_type)
 		return store_dataframe
 
@@ -199,7 +201,7 @@ class DataCleaning:
 		else:
 			return np.nan 
 
-	def clean_staff_number(self,store_dataframe):
+	def _clean_staff_number(self,store_dataframe):
 		store_dataframe['staff_numbers'] = store_dataframe['staff_numbers'].apply(self._change_staff_numbers)
 		return store_dataframe
 
@@ -210,7 +212,16 @@ class DataCleaning:
 				return np.nan
 		return value
 
+	def _clean_latitude_and_longitude(self,store_dataframe):
+		store_dataframe['longitude'] = store_dataframe['longitude'].apply(self._change_latitude_and_longitude)
+		store_dataframe['latitude'] = store_dataframe['latitude'].apply(self._change_latitude_and_longitude)
+		return store_dataframe
 
+	def _change_latitude_and_longitude(self,value):
+		for literal in str(value):
+			if literal not in '0123456789.':
+				return np.nan 
+		return value
 # ------------------------------product details-----------------------------------------------------------
 
 
@@ -296,7 +307,17 @@ class DataCleaning:
 	def _clean_date_added(self,product_dataframe):
 		product_dataframe['date_added'] = pd.to_datetime(product_dataframe['date_added'],infer_datetime_format = True,format = 'mixed',errors = 'coerce')
 		return product_dataframe
+	def _clean_uuid(self,product_dataframe):
+		product_dataframe['uuid'] = product_dataframe['uuid'].apply(self._change_uuid)
+		return product_dataframe
 
+	def _change_uuid(self,value):
+		if value == np.nan:
+			return np.nan 
+		elif len(str(value)) < 20:
+			return np.nan 
+		else:
+			return value 
 # ----------------------------orders data-------------------------------------------
 	def clean_orders_data(self,order_dataframe):
 		order_dataframe.drop(['first_name','last_name','1'],axis = 1,inplace = True)
