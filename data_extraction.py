@@ -43,7 +43,7 @@ class DataExtractor:
 		total_stores = self.list_number_of_stores()
 		total_stores_list = []
 		for store_number in range(0,total_stores,1):
-		# replace below line with above one when all work is done ~~sonia.
+
 		# for store_number in range(1,20,1):
 			response = requests.get(url = store_endpoint+str(store_number),headers = header_details_dict)
 			our_dict = response.json()

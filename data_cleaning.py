@@ -7,11 +7,113 @@ class DataCleaning:
 
 	def clean_user_data(self,user_data_df):
 		clean_df = user_data_df.dropna(axis = 1,how = 'all')
+		clean_df = clean_df.set_index(clean_df.columns[0])
 		# to drop column where all data is null values
-		clean_df.fillna(0,inplace = True)
+		clean_df = self._clean_first_name(clean_df)
+		clean_df = self._clean_last_name(clean_df)
+		clean_df = self._clean_date_of_birth(clean_df)
+		clean_df = self._clean_company(clean_df)
+		clean_df = self._clean_email_address(clean_df)
+		clean_df = self._clean_address(clean_df)
+		clean_df = self._clean_country(clean_df)
+		clean_df = self._clean_country_code(clean_df)
+		clean_df = self._clean_phone_number(clean_df)
+		clean_df = self._clean_join_date(clean_df)
+		clean_df = self._clean_user_uuid(clean_df)
 		return clean_df
-		# for remaining null values we replace them with zero
 
+	def _clean_first_name(self,clean_df):
+		clean_df['first_name'] = clean_df['first_name'].apply(self._change_name)
+		return clean_df
+
+	def _clean_last_name(self,clean_df):
+		clean_df['last_name'] = clean_df['last_name'].apply(self._change_name)
+		return clean_df
+
+	def _change_name(self,value):
+		for letter in str(value):
+			if letter in '0123456789@#$%^&*()_+':
+				return np.nan 
+		return value 
+
+	def _clean_date_of_birth(self,clean_df):
+		clean_df['date_of_birth'] = pd.to_datetime(clean_df['date_of_birth'],format = 'mixed',infer_datetime_format = True,errors = 'coerce')
+		return clean_df
+
+
+	def _clean_company(self,clean_df):
+		clean_df['company'] = clean_df['company'].apply(self._change_company)
+		return clean_df
+
+	def _change_company(self,value):
+		if str(value) == 'NULL':
+			return np.nan 
+		else:
+			return value 
+
+
+	def _clean_email_address(self,clean_df):
+		clean_df['email_address'] = clean_df['email_address'].apply(self._change_email)
+		return clean_df
+	def _change_email(self,value):
+		if '@' not in str(value):
+			return np.nan 
+		else:
+			return value 
+
+	def _clean_address(self,clean_df):
+		clean_df['address'] = clean_df['address'].apply(self._change_address)
+		return clean_df
+	def _change_address(self,value):
+		if str(value) == 'NULL':
+			return np.nan 
+		else: 
+			return value 
+
+
+	def _clean_country(self,clean_df):
+		clean_df['country'] = clean_df['country'].apply(self._change_country)
+		return clean_df
+
+	def _change_country(self,value):
+		valid_country_code = ['United Kingdom','Germany','United States']
+		if value not in valid_country_code:
+			return np.nan 
+		else:
+			return value 
+
+	def _clean_country_code(self,clean_df):
+		clean_df['country_code'] = clean_df['country_code'].apply(self._change_country_code)
+		return clean_df
+
+	def _clean_phone_number(self,clean_df):
+		clean_df['phone_number'] = clean_df['phone_number'].apply(self._change_phone_number)
+		return clean_df
+
+	def _change_phone_number(self,value):
+		for literal in str(value):
+			if literal in '()+-X.x ':
+				value = value.replace(literal,'')
+		if value == 'NULL':
+			return np.nan
+		return value
+
+	def _clean_join_date(self,clean_df):
+		clean_df['join_date'] = pd.to_datetime(clean_df['join_date'],format = 'mixed',infer_datetime_format = True,errors = 'coerce')
+		return clean_df
+
+	def _clean_user_uuid(self,clean_df):
+		clean_df['user_uuid'] = clean_df['user_uuid'].apply(self._change_user_uuid)
+		return clean_df
+
+	def _change_user_uuid(self,value):
+		if str(value) == 'NULL':
+			return np.nan
+		else:
+			return value
+
+		# for remaining null values we replace them with zero
+# ----------------------------------------card data -------------------------------------------------------------------------------------
 	def clean_card_data(self,card_data_df):
 		clean_df = card_data_df.dropna(axis = 1,how = 'all')
 		# breakpoint()
@@ -66,13 +168,11 @@ class DataCleaning:
 		return store_dataframe
 
 	def _change_country_code(self,value):
-		try:
-			if len(str(value))>2:
-				return np.nan
-			else:
-				return value
-		except TypeError:
-				breakpoint()
+		if len(str(value))>2:
+			return np.nan
+		else:
+			return value
+
 	def clean_continent(self,store_dataframe):
 		store_dataframe['continent'] = store_dataframe['continent'].apply(self._change_continent)
 		return store_dataframe
