@@ -14,3 +14,5 @@ This class will handle database connections and data uploads.
 ### 3. data_cleaning.py
 Create a class named DataCleaning.
 Implement methods to clean data from each of the data sources.
+
+## The data that we are fetching pertains to sales related inforamtion for a company where we have tables like: Product details, order details etc and we extract , clean this information before finally uploading it to our local database called sales data in Postgresql
