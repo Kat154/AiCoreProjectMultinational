@@ -4,7 +4,7 @@ import yaml
 import numpy as np
 
 class DataCleaning:
-
+# -----------------------------user data----------------------------------------
 	def clean_user_data(self,user_data_df):
 		clean_df = user_data_df.dropna(axis = 1,how = 'all')
 		clean_df = clean_df.set_index(clean_df.columns[0])
@@ -242,14 +242,14 @@ class DataCleaning:
 				return value[:-2]
 			elif value[-1] == 'g' and value [-2] in '0123456789':
 				value_in_kg = float(value[:-1])/1000
-				print(f'succeded in attempt:{x}')
+				# print(f'succeded in attempt:{x}')
 				return value_in_kg
 			elif value[-2:] == 'ml':
 				value_in_kg = float(value[:-2])/1000 
-				print(f'succeded in attempt:{x}')
+				# print(f'succeded in attempt:{x}')
 				return value_in_kg
 			else:
-				print(f'succeded in attempt:{x}')
+				# print(f'succeded in attempt:{x}')
 				return np.nan
 
 		except TypeError:
@@ -265,7 +265,9 @@ class DataCleaning:
 		clean_products_df = self._clean_removed(clean_products_df)
 		clean_products_df = self._clean_date_added(clean_products_df)
 		clean_products_df = self._clean_product_price(clean_products_df)
-
+		clean_products_df = self.convert_product_weights(clean_products_df)
+		# breakpoint()
+		clean_products_df = self._clean_uuid(clean_products_df)
 
 
 		return clean_products_df
@@ -312,9 +314,10 @@ class DataCleaning:
 		return product_dataframe
 
 	def _change_uuid(self,value):
+		# breakpoint()
 		if value == np.nan:
 			return np.nan 
-		elif len(str(value)) < 20:
+		elif len(str(value)) < 36:
 			return np.nan 
 		else:
 			return value 
@@ -331,7 +334,6 @@ class DataCleaning:
 		clean_datetime_json_df = self._clean_day(clean_datetime_json_df)
 		clean_datetime_json_df = self._clean_timestamp(clean_datetime_json_df)
 		clean_datetime_json_df = self._clean_date_uuid(clean_datetime_json_df)
-		breakpoint()
 		clean_datetime_json_df = self._clean_time_period(clean_datetime_json_df)
 
 		return clean_datetime_json_df
@@ -357,6 +359,7 @@ class DataCleaning:
 		for literal in str(value):
 			if literal not in '0123456789':
 				return np.nan 
+			
 		return value 
 
 	def _clean_day(self,datetime_json_df):
@@ -382,11 +385,13 @@ class DataCleaning:
 		return value 
 
 	def _clean_date_uuid(self,datetime_json_df):
-		datetime_json_df['date_uuid'] = datetime_json_df['date_uuid'].apply(self._change_uuid)
+		datetime_json_df['date_uuid'] = datetime_json_df['date_uuid'].apply(self._change_date_uuid)
 		return datetime_json_df
 
-	def _change_uuid(self,value):
+	def _change_date_uuid(self,value):
 		if str(value) == "NULL":
+			return np.nan 
+		elif len(str(value))<36:
 			return np.nan 
 		else:
 			return value

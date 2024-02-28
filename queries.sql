@@ -34,12 +34,39 @@ update dim_products set weight_class = 'Heavy' where weight >= 40 and weight < 1
 update dim_products set weight_class = 'Truck_Required' where weight >=140;
 ALTER TABLE dim_products RENAME COLUMN removed TO still_available;
 ALTER TABLE dim_products ALTER column product_price SET DATA TYPE float using product_price::double precision;
-ALTER TABLE dim_products ALTER column EAN  SET DATA TYPE varchar(20);
+ALTER TABLE dim_products ALTER column "EAN"  SET DATA TYPE varchar(20);
 ALTER TABLE dim_products ALTER column product_code SET DATA TYPE varchar(15);
 ALTER TABLE dim_products ALTER column date_added SET DATA TYPE date;
 ALTER TABLE dim_products ALTER column uuid SET DATA TYPE uuid using uuid::uuid;
-update dim_products set still_available = 'True' where still_available = 'still_available';
-update dim_products set still_available = 'False' where still_available = 'removed';
+update dim_products set still_available = 'True' where still_available = 'Still_avaliable';
+update dim_products set still_available = 'False' where still_available = 'Removed';
 ALTER TABLE dim_products ALTER column still_available SET DATA TYPE bool using still_available::boolean;
-ALTER TABLE dim_products ALTER column  SET DATA TYPE 
-ALTER TABLE dim_products ALTER column  SET DATA TYPE 
+ALTER TABLE dim_products ALTER column weight_class SET DATA TYPE varchar(15);
+
+
+
+
+ALTER TABLE dim_date_times ALTER column month SET DATA TYPE varchar(2);
+ALTER TABLE dim_date_times ALTER column year SET DATA TYPE varchar(4);
+ALTER TABLE dim_date_times ALTER column day SET DATA TYPE varchar(2);
+ALTER TABLE dim_date_times ALTER column time_period SET DATA TYPE varchar(15);
+ALTER TABLE dim_date_times ALTER column date_uuid  SET DATA TYPE uuid using date_uuid::uuid;
+
+
+
+ALTER TABLE dim_card_details ALTER column card_number SET DATA TYPE varchar(50);
+ALTER TABLE dim_card_details ALTER column expiry_date SET DATA TYPE varchar(50);
+ALTER TABLE dim_card_details ALTER column date_payment_confirmed SET DATA TYPE date;
+
+ALTER TABLE dim_card_details ADD PRIMARY KEY (card_number);
+ALTER TABLE dim_date_times ADD PRIMARY KEY (date_uuid);
+ALTER TABLE dim_products ADD PRIMARY KEY (product_code);
+ALTER TABLE dim_users ADD PRIMARY KEY (user_uuid);
+ALTER TABLE dim_store_details ADD PRIMARY KEY (store_code);
+
+
+ALTER TABLE orders_table ADD CONSTRAINT foreign_key_for_dim_card_details FOREIGN KEY (card_number) REFERENCES dim_card_details (card_number);
+ALTER TABLE orders_table ADD CONSTRAINT foreign_key_for_dim_date_times FOREIGN KEY (date_uuid) REFERENCES dim_date_times (date_uuid);
+ALTER TABLE orders_table ADD CONSTRAINT foreign_key_for_dim_products FOREIGN KEY (product_code) REFERENCES dim_products (product_code);
+ALTER TABLE orders_table ADD CONSTRAINT foreign_key_for_dim_users FOREIGN KEY (user_uuid) REFERENCES dim_users (user_uuid);
+ALTER TABLE orders_table ADD CONSTRAINT foreign_key_for_store_details FOREIGN KEY (store_code) REFERENCES dim_store_details (store_code);
