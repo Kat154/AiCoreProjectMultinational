@@ -1,3 +1,4 @@
+-- milestone 3 create database schema----------------------------------
 alter table orders_table alter column store_code SET DATA TYPE varchar(12);
 alter table orders_table alter column card_number SET DATA TYPE varchar(19);
 alter table orders_table alter column product_code SET DATA TYPE varchar(11);
@@ -65,8 +66,19 @@ ALTER TABLE dim_users ADD PRIMARY KEY (user_uuid);
 ALTER TABLE dim_store_details ADD PRIMARY KEY (store_code);
 
 
-ALTER TABLE orders_table ADD CONSTRAINT foreign_key_for_dim_card_details FOREIGN KEY (card_number) REFERENCES dim_card_details (card_number);
 ALTER TABLE orders_table ADD CONSTRAINT foreign_key_for_dim_date_times FOREIGN KEY (date_uuid) REFERENCES dim_date_times (date_uuid);
 ALTER TABLE orders_table ADD CONSTRAINT foreign_key_for_dim_products FOREIGN KEY (product_code) REFERENCES dim_products (product_code);
 ALTER TABLE orders_table ADD CONSTRAINT foreign_key_for_dim_users FOREIGN KEY (user_uuid) REFERENCES dim_users (user_uuid);
 ALTER TABLE orders_table ADD CONSTRAINT foreign_key_for_store_details FOREIGN KEY (store_code) REFERENCES dim_store_details (store_code);
+ALTER TABLE orders_table ADD CONSTRAINT foreign_key_for_dim_card_details FOREIGN KEY (card_number) REFERENCES dim_card_details (card_number);
+
+
+---------------------Milestore 4 querying the data---------------------------------
+
+ select count(*),country_code from dim_store_details group by country_code;
+ select count(*),locality from dim_store_details group by locality order by count(*) desc limit 7;
+ select sum(ordertable.product_quantity),datetime.month from orders_table "ordertable" 
+ inner join dim_date_times "datetime" on ordertable.date_uuid = datetime.date_uuid group by datetime.month order by sum(ordertable.product_quantity) desc limit 6;
+ 
+ select sum(ordertable.product_quantity) as "product_quantity_count",count(*) as "number_of_sales", case when store.store_type = 'Web Portal' 
+ then 'Web' else 'Offline' end as "location"  from dim_store_details "store" inner join orders_table "ordertable" on store.store_code = ordertable.store_code group by location order by number_of_sales;
