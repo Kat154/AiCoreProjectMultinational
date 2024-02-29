@@ -375,6 +375,7 @@ class DataCleaning:
 
 	def _clean_timestamp(self,datetime_json_df):
 		datetime_json_df['timestamp'] = datetime_json_df['timestamp'].apply(self._change_timestamp)
+		datetime_json_df['timestamp'] = pd.to_datetime(datetime_json_df['timestamp'],infer_datetime_format = True,format = 'mixed',errors = 'coerce')
 		return datetime_json_df
 
 	def _change_timestamp(self,value):

@@ -82,3 +82,108 @@ ALTER TABLE orders_table ADD CONSTRAINT foreign_key_for_dim_card_details FOREIGN
  
  select sum(ordertable.product_quantity) as "product_quantity_count",count(*) as "number_of_sales", case when store.store_type = 'Web Portal' 
  then 'Web' else 'Offline' end as "location"  from dim_store_details "store" inner join orders_table "ordertable" on store.store_code = ordertable.store_code group by location order by number_of_sales;
+
+select sum(total_sales) from (select store.store_type,ROUND(cast(sum(ordertable.product_quantity * products.product_price) as numeric),2) as "total_sales" from dim_products "products" inner join orders_table "ordertable" on products.product_code = ordertable.product_code inner join dim_store_details "store" on store.store_code = ordertable.store_code group by store.store_type order by sum(ordertable.product_quantity * products.product_price) desc) as subquery1;
+
+
+-- TASK #5
+
+select store.store_type, Round(cast(sum(ordertable.product_quantity*products.product_price) as numeric),2) as "total_sales" ,
+Round(cast(sum(ordertable.product_quantity*products.product_price)*100/
+	(select sum(o.product_quantity*p.product_price) from orders_table "o" inner join dim_products "p" on o.product_code = p.product_code) as numeric),2) as "percentage_total(%)"
+	from 
+		orders_table "ordertable" inner join 
+		dim_products "products" 
+			on ordertable.product_code = products.product_code
+		inner join dim_store_details "store" 
+		on store.store_code = ordertable.store_code
+		group by store.store_type
+		order by "percentage_total(%)" desc;
+
+-- TASK #6
+select 
+datetime.year ,datetime.month ,ROUND(cast(sum(ordertable.product_quantity * products.product_price) as numeric),2) as "total_sales" 
+from 
+orders_table "ordertable" inner join dim_date_times "datetime" 
+on ordertable.date_uuid = datetime.date_uuid inner join dim_products "products" on products.product_code = ordertable.product_code 
+group by datetime.year,datetime.month order by ROUND(cast(sum(ordertable.product_quantity * products.product_price) as numeric),2) desc limit 14;
+-- TASK #7
+ select count(user_uuid),country_code from dim_users group by country_code order by count(user_uuid) desc;
+
+-- TASK #8
+
+select ROUND(cast(sum(ordertable.product_quantity * products.product_price) as numeric),2) as "total_sales" , store.store_type, store.country_code
+from orders_table "ordertable" 
+inner join dim_products "products" on ordertable.product_code = products.product_code 
+inner join dim_store_details "store" on store.store_code = ordertable.store_code and store.country_code = 'DE'
+group by store.store_type,store.country_code
+order by ROUND(cast(sum(ordertable.product_quantity * products.product_price) as numeric),2);
+
+
+
+-- TASK 9
+
+
+
+	select 
+	   sum(abs(subquery2.next_hour-subquery2.current_hour))*60*60 as "hours_to_seconds",
+	   sum(abs(subquery2.next_minute-subquery2.current_minute))*60 as "minutes_to_seconds",
+	   sum(abs(subquery2.next_second-subquery2.current_second)) as "seconds",
+	   subquery2.year,
+	   count(subquery2.date_uuid)
+	from
+	(
+		select cast(substring(subquery1.current_timestamp,1,2) as numeric) as "current_hour",
+			   cast(substring(subquery1.current_timestamp,4,2) as numeric) as "current_minute" ,
+			   cast(substring(subquery1.current_timestamp,7,2) as numeric) as "current_second" ,
+			   cast(substring(subquery1.next_time_stamp,1,2) as numeric) as "next_hour",
+			   cast(substring(subquery1.next_time_stamp,4,2) as numeric) as "next_minute" ,
+			   cast(substring(subquery1.next_time_stamp,7,2) as numeric) as "next_second" ,
+			   subquery1.year ,
+			   subquery1.date_uuid
+		from 
+				(
+				
+					select datetime.timestamp as "current_timestamp",
+					lead(datetime.timestamp,1,NULL) OVER (order by datetime.timestamp ) as "next_time_stamp" ,
+					datetime.year as "year",
+					datetime.date_uuid as "date_uuid"
+					from    
+					dim_date_times "datetime"
+
+				) as subquery1
+	) as subquery2 
+	group by subquery2.year
+
+
+
+
+	-- select 
+	--    (sum(abs(subquery2.next_hour-subquery2.current_hour))*60*60) + (sum(abs(subquery2.next_minute-subquery2.current_minute))*60)+ (sum(abs(subquery2.next_second-subquery2.current_second))) as "difference_total_seconds",
+	--    ((sum(abs(subquery2.next_hour-subquery2.current_hour))*60*60) + (sum(abs(subquery2.next_minute-subquery2.current_minute))*60)+ (sum(abs(subquery2.next_second-subquery2.current_second))))/count(subquery2.date_uuid) as "average_difference_in_seconds",
+	--    subquery2.year,
+	--    count(subquery2.date_uuid)
+	-- from
+	-- (
+	-- 	select cast(substring(subquery1.current_timestamp,1,2) as numeric) as "current_hour",
+	-- 		   cast(substring(subquery1.current_timestamp,4,2) as numeric) as "current_minute" ,
+	-- 		   cast(substring(subquery1.current_timestamp,7,2) as numeric) as "current_second" ,
+	-- 		   cast(substring(subquery1.next_time_stamp,1,2) as numeric) as "next_hour",
+	-- 		   cast(substring(subquery1.next_time_stamp,4,2) as numeric) as "next_minute" ,
+	-- 		   cast(substring(subquery1.next_time_stamp,7,2) as numeric) as "next_second" ,
+	-- 		   subquery1.year ,
+	-- 		   subquery1.date_uuid
+	-- 	from 
+	-- 			(
+				
+	-- 				select datetime.timestamp as "current_timestamp",
+	-- 				lead(datetime.timestamp,1,NULL) OVER (order by datetime.timestamp ) as "next_time_stamp" ,
+	-- 				datetime.year as "year",
+	-- 				datetime.date_uuid as "date_uuid"
+	-- 				from    
+	-- 				dim_date_times "datetime"
+
+	-- 			) as subquery1
+	-- ) as subquery2 
+	-- group by subquery2.year
+	
